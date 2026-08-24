@@ -6,6 +6,10 @@ import {
 } from "./message.js";
 import { createMediaToken, eventKey, safeEqual } from "./security.js";
 
+const PRIVATE_MESSAGE_NOTICE = `Здравствуйте! Обращения в личных сообщениях бота не принимаются. Пожалуйста, напишите в Telegram-группу поддержки.
+
+Assalomu alaykum! Botning shaxsiy xabarlarida murojaatlar qabul qilinmaydi. Iltimos, Telegram qo‘llab-quvvatlash guruhiga yozing.`;
+
 export class Bridge {
   constructor({ config, telegram, usedesk, store, logger = console }) {
     this.config = config;
@@ -38,6 +42,20 @@ export class Bridge {
     if (message.from?.is_bot) return { status: "ignored", reason: "bot_message" };
 
     const type = message.chat?.type;
+    if (type === "private") {
+      const updateKey = `telegram-private:${update.update_id}`;
+      if (update.update_id != null && !(await this.store.claimEvent(updateKey))) {
+        return { status: "ignored", reason: "duplicate_update" };
+      }
+
+      try {
+        await this.telegram.sendMessage(message.chat.id, PRIVATE_MESSAGE_NOTICE);
+        return { status: "replied", reason: "private_message" };
+      } catch (error) {
+        if (update.update_id != null) await this.store.releaseEvent(updateKey);
+        throw error;
+      }
+    }
     if (type !== "group" && type !== "supergroup") {
       return { status: "ignored", reason: "private_or_channel" };
     }
