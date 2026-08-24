@@ -82,7 +82,7 @@ Blueprint запросит следующие значения:
 | `USEDESK_CHAT_CHANNEL_ID` | ID чатового канала `Telegram Group Bridge` |
 | `USEDESK_APP_ID` | ID приложения API-канала |
 
-`DATABASE_URL` подключается к Managed PostgreSQL автоматически. Публичный адрес сервис получает от Render автоматически.
+`DATABASE_URL` — строка подключения к отдельной PostgreSQL-базе (для бесплатного варианта подходит Neon). Публичный адрес сервис получает от Render автоматически.
 
 ## 5. Подключить webhook Usedesk
 
