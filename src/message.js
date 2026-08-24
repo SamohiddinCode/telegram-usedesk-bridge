@@ -83,7 +83,7 @@ export function formatForUsedesk({ message, content, mediaUrl }) {
 
 export function formatUsedeskReply(payload) {
   const parts = [];
-  if (payload.text?.trim()) parts.push(`💬 Поддержка:\n${payload.text.trim()}`);
+  if (payload.text?.trim()) parts.push(payload.text.trim());
 
   const files = Array.isArray(payload.files)
     ? payload.files
