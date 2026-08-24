@@ -1,11 +1,3 @@
-databases:
-  - name: telegram-usedesk-bridge-db
-    databaseName: telegram_usedesk_bridge
-    user: telegram_usedesk_bridge
-    plan: free
-    region: frankfurt
-    ipAllowList: []
-
 services:
   - type: web
     name: telegram-usedesk-bridge
@@ -20,9 +12,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: telegram-usedesk-bridge-db
-          property: connectionString
+        sync: false
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: TELEGRAM_GROUP_ID
