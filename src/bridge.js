@@ -42,6 +42,10 @@ export class Bridge {
       return { status: "ignored", reason: "private_or_channel" };
     }
     if (String(message.chat.id) !== this.config.telegram.groupId) {
+      this.logger.info("Telegram group ignored", {
+        receivedGroupId: String(message.chat.id),
+        configuredGroupId: this.config.telegram.groupId,
+      });
       return { status: "ignored", reason: "unapproved_group" };
     }
 
