@@ -53,12 +53,17 @@ function update(overrides = {}) {
   };
 }
 
-test("private messages are ignored", async () => {
+test("private messages receive a bilingual group notice", async () => {
   const { bridge, calls } = fixture();
   const result = await bridge.handleTelegramUpdate(
     update({ chat: { id: 55, type: "private" } }),
   );
-  assert.equal(result.reason, "private_or_channel");
+  assert.equal(result.status, "replied");
+  assert.equal(result.reason, "private_message");
+  assert.equal(calls.telegram.length, 1);
+  assert.equal(calls.telegram[0][0], 55);
+  assert.match(calls.telegram[0][1], /Обращения в личных сообщениях/);
+  assert.match(calls.telegram[0][1], /murojaatlar qabul qilinmaydi/);
   assert.equal(calls.usedesk.length, 0);
 });
 
