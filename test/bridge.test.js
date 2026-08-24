@@ -116,7 +116,7 @@ test("only agent replies from the mapped Usedesk chat reach Telegram", async () 
   assert.equal(agentResult.status, "forwarded");
   assert.equal(calls.telegram.length, 1);
   assert.equal(calls.telegram[0][0], "-100123");
-  assert.match(calls.telegram[0][1], /Мы уже проверяем/);
+  assert.equal(calls.telegram[0][1], "Мы уже проверяем");
 });
 
 test("invalid Usedesk app id is rejected", async () => {
