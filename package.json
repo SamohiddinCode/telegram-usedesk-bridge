@@ -1,0 +1,21 @@
+{
+  "name": "telegram-usedesk-group-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A group-only Telegram to Usedesk relay with private-chat filtering.",
+  "type": "module",
+  "engines": {
+    "node": ">=22 <25"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test",
+    "check": "node --check src/server.js && node --check src/bridge.js",
+    "detect:group": "node scripts/detect-group.js",
+    "list:channels": "node scripts/list-usedesk-channels.js"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  }
+}
