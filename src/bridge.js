@@ -11,13 +11,25 @@ const PRIVATE_MESSAGE_NOTICE = `Здравствуйте! Обращения в 
 Assalomu alaykum! Botning shaxsiy xabarlarida murojaatlar qabul qilinmaydi. Iltimos, Telegram qo‘llab-quvvatlash guruhiga yozing.`;
 
 export class Bridge {
-  constructor({ config, telegram, usedesk, store, logger = console }) {
+  constructor({ config, telegram, telemeric, usedesk, store, logger = console }) {
     this.config = config;
     this.telegram = telegram;
+    this.telemeric = telemeric;
     this.usedesk = usedesk;
     this.store = store;
     this.logger = logger;
     this.telegramQueue = Promise.resolve();
+  }
+
+  async mirrorUpdates(updates) {
+    if (!this.telemeric) return;
+    try {
+      await this.telemeric.ingest(updates);
+    } catch (error) {
+      this.logger.error("Unable to mirror Telegram updates to Telemeric", {
+        message: error.message,
+      });
+    }
   }
 
   async registerTelegramWebhook() {
@@ -76,6 +88,7 @@ export class Bridge {
     }
 
     try {
+      await this.mirrorUpdates([update]);
       const mediaUrl = content.media ? this.createMediaUrl(content.media) : null;
       const text = formatForUsedesk({ message, content, mediaUrl });
       const current = await this.store.getState(this.config.telegram.groupId);
@@ -152,6 +165,7 @@ export class Bridge {
 
     try {
       const chunks = splitTelegramText(text);
+      const mirroredUpdates = [];
       for (let index = 0; index < chunks.length; index += 1) {
         const options = {};
         if (
@@ -164,12 +178,19 @@ export class Bridge {
             allow_sending_without_reply: true,
           };
         }
-        await this.telegram.sendMessage(
+        const sentMessage = await this.telegram.sendMessage(
           this.config.telegram.groupId,
           chunks[index],
           options,
         );
+        if (sentMessage?.message_id != null) {
+          mirroredUpdates.push({
+            update_id: Number(sentMessage.message_id),
+            message: sentMessage,
+          });
+        }
       }
+      await this.mirrorUpdates(mirroredUpdates);
       return { status: "forwarded" };
     } catch (error) {
       await this.store.releaseEvent(key);

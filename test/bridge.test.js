@@ -5,12 +5,24 @@ import { createMediaToken, verifyMediaToken } from "../src/security.js";
 import { MemoryStore } from "../src/store.js";
 
 function fixture() {
-  const calls = { telegram: [], usedesk: [] };
+  const calls = { telegram: [], telemeric: [], usedesk: [] };
   const telegram = {
     async setWebhook() {},
     async sendMessage(...args) {
       calls.telegram.push(args);
-      return { message_id: 999 };
+      return {
+        message_id: 999,
+        date: 1_787_000_000,
+        text: args[1],
+        chat: { id: Number(args[0]), type: "supergroup", title: "Поддержка" },
+        from: { id: 8724485176, username: "uzum_franchise_support_bot", is_bot: true },
+      };
+    },
+  };
+  const telemeric = {
+    async ingest(updates) {
+      calls.telemeric.push(updates);
+      return { ok: true, accepted: updates.length };
     },
   };
   const usedesk = {
@@ -33,6 +45,7 @@ function fixture() {
   const bridge = new Bridge({
     config,
     telegram,
+    telemeric,
     usedesk,
     store,
     logger: { info() {}, error() {} },
@@ -81,6 +94,8 @@ test("approved group message is forwarded and chat mapping is saved", async () =
   const result = await bridge.handleTelegramUpdate(update());
   assert.equal(result.status, "forwarded");
   assert.equal(calls.usedesk.length, 1);
+  assert.equal(calls.telemeric.length, 1);
+  assert.equal(calls.telemeric[0][0].message.text, "Нужна помощь");
   assert.match(calls.usedesk[0].text, /Алишер \(@alisher\)/);
   assert.match(calls.usedesk[0].text, /Нужна помощь/);
   const state = await store.getState("-100123");
@@ -122,6 +137,8 @@ test("only agent replies from the mapped Usedesk chat reach Telegram", async () 
   assert.equal(calls.telegram.length, 1);
   assert.equal(calls.telegram[0][0], "-100123");
   assert.equal(calls.telegram[0][1], "Мы уже проверяем");
+  assert.equal(calls.telemeric.length, 2);
+  assert.equal(calls.telemeric[1][0].message.from.username, "uzum_franchise_support_bot");
 });
 
 test("invalid Usedesk app id is rejected", async () => {

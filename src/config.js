@@ -44,6 +44,16 @@ export function loadConfig(env = process.env) {
   }
 
   const webhookSecret = requireValue(env, "WEBHOOK_SECRET");
+  const botToken = requireValue(env, "TELEGRAM_BOT_TOKEN");
+  const telemericUrl = (
+    env.TELEMERIC_COLLECTOR_URL ||
+    "https://telemeric-uzum-collector.onrender.com"
+  ).replace(/\/$/, "");
+  try {
+    new URL(telemericUrl);
+  } catch {
+    throw new Error("TELEMERIC_COLLECTOR_URL must be a valid absolute URL");
+  }
   if (!/^[A-Za-z0-9_-]{16,128}$/.test(webhookSecret)) {
     throw new Error(
       "WEBHOOK_SECRET must contain 16-128 letters, numbers, underscores, or hyphens",
@@ -56,7 +66,7 @@ export function loadConfig(env = process.env) {
     publicBaseUrl,
     webhookSecret,
     telegram: {
-      botToken: requireValue(env, "TELEGRAM_BOT_TOKEN"),
+      botToken,
       groupId: requireIntegerString(env, "TELEGRAM_GROUP_ID", {
         allowNegative: true,
       }),
@@ -64,6 +74,12 @@ export function loadConfig(env = process.env) {
         env.REPLY_TO_LAST_TELEGRAM_MESSAGE,
         false,
       ),
+    },
+    telemeric: {
+      url: telemericUrl,
+      authToken: botToken,
+      account: env.TELEMERIC_ACCOUNT?.trim() || "@uzum_franchise_support_bot",
+      groupTitle: env.TELEMERIC_GROUP_TITLE?.trim() || "Uzum Franchise Chat",
     },
     usedesk: {
       apiBaseUrl: (env.USEDESK_API_BASE_URL || "https://api.usedesk.ru").replace(
