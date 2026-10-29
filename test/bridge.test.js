@@ -40,6 +40,7 @@ function fixture() {
       replyToLastMessage: false,
     },
     usedesk: { appId: "321", apiToken: "api-token" },
+    telemeric: { operatorIds: new Set(["8419189523"]) },
   };
   const store = new MemoryStore();
   const bridge = new Bridge({
@@ -77,6 +78,21 @@ test("private messages receive a bilingual group notice", async () => {
   assert.equal(calls.telegram[0][0], 55);
   assert.match(calls.telegram[0][1], /Обращения в личных сообщениях/);
   assert.match(calls.telegram[0][1], /murojaatlar qabul qilinmaydi/);
+  assert.equal(calls.usedesk.length, 0);
+});
+
+test("approved operator private messages are mirrored to the report collector only", async () => {
+  const { bridge, calls } = fixture();
+  const operatorUpdate = update({
+    text: "/start",
+    chat: { id: 8419189523, type: "private" },
+    from: { id: 8419189523, first_name: "Operator" },
+  });
+  const result = await bridge.handleTelegramUpdate(operatorUpdate);
+  assert.equal(result.status, "forwarded");
+  assert.equal(result.reason, "private_report_operator");
+  assert.deepEqual(calls.telemeric, [[operatorUpdate]]);
+  assert.equal(calls.telegram.length, 0);
   assert.equal(calls.usedesk.length, 0);
 });
 

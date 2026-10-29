@@ -42,6 +42,11 @@ export class Bridge {
     return safeEqual(value, this.config.webhookSecret);
   }
 
+  isReportOperator(message) {
+    const userId = String(message?.from?.id || "");
+    return Boolean(userId) && this.config.telemeric?.operatorIds?.has(userId);
+  }
+
   enqueueTelegramUpdate(update) {
     const result = this.telegramQueue.then(() => this.handleTelegramUpdate(update));
     this.telegramQueue = result.catch(() => undefined);
@@ -61,6 +66,12 @@ export class Bridge {
       }
 
       try {
+        // The collector independently verifies this ID and consumes the update
+        // before analytics or Usedesk. All other private messages remain blocked.
+        if (this.isReportOperator(message)) {
+          await this.mirrorUpdates([update]);
+          return { status: "forwarded", reason: "private_report_operator" };
+        }
         await this.telegram.sendMessage(message.chat.id, PRIVATE_MESSAGE_NOTICE);
         return { status: "replied", reason: "private_message" };
       } catch (error) {
