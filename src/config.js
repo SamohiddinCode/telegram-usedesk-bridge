@@ -32,7 +32,7 @@ function parsePositiveInteger(value, fallback) {
 }
 
 function parseOperatorIds(value) {
-  const ids = (value || "8419189523")
+  const ids = (value || "8419189523,7952444345")
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);

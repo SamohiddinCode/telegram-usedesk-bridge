@@ -32,6 +32,6 @@ services:
       - key: REPLY_TO_LAST_TELEGRAM_MESSAGE
         value: "false"
       - key: REPORT_OPERATOR_IDS
-        value: "8419189523"
+        value: "8419189523,7952444345"
       - key: MEDIA_LINK_TTL_SECONDS
         value: "604800"
