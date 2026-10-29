@@ -31,6 +31,17 @@ function parsePositiveInteger(value, fallback) {
   return parsed;
 }
 
+function parseOperatorIds(value) {
+  const ids = (value || "8419189523")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  if (!ids.length || ids.some((item) => !/^\d+$/.test(item))) {
+    throw new Error("REPORT_OPERATOR_IDS must be a comma-separated list of Telegram user IDs");
+  }
+  return new Set(ids);
+}
+
 export function loadConfig(env = process.env) {
   const publicBaseUrl = requireValue(
     { PUBLIC_BASE_URL: env.PUBLIC_BASE_URL || env.RENDER_EXTERNAL_URL },
@@ -80,6 +91,7 @@ export function loadConfig(env = process.env) {
       authToken: botToken,
       account: env.TELEMERIC_ACCOUNT?.trim() || "@uzum_franchise_support_bot",
       groupTitle: env.TELEMERIC_GROUP_TITLE?.trim() || "Uzum Franchise Chat",
+      operatorIds: parseOperatorIds(env.REPORT_OPERATOR_IDS),
     },
     usedesk: {
       apiBaseUrl: (env.USEDESK_API_BASE_URL || "https://api.usedesk.ru").replace(

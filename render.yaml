@@ -31,5 +31,7 @@ services:
         value: https://api.usedesk.ru
       - key: REPLY_TO_LAST_TELEGRAM_MESSAGE
         value: "false"
+      - key: REPORT_OPERATOR_IDS
+        value: "8419189523"
       - key: MEDIA_LINK_TTL_SECONDS
         value: "604800"
